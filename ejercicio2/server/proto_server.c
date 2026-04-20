@@ -5,16 +5,18 @@
  */
 
 #include "proto.h"
+#include <stdio.h>
 
 respuesta *
 sumar_arreglos_1_svc(entrada *argp, struct svc_req *rqstp)
 {
-	respuesta *result;
-
+	respuesta *result = malloc(sizeof(respuesta));
+	printf("Servidor: Recibi los arreglos\n");
 	for(int i = 0; i < 200; i++)
 	{
 		result->resultado[i] = argp->arreglo_A[i] + argp->arreglo_B[i];
 	}
-
+	printf("Servidor: Sume los arreglos\n");
+	free(result);
 	return result;
 }
