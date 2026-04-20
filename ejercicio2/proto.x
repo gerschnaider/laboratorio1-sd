@@ -11,6 +11,6 @@ struct respuesta {
 
 program SUMADOR_PROG {
     version SUMADOR_VERS {
-        respuesta_datos SUMAR_ARREGLOS(entrada_datos) = 1;
+        respuesta SUMAR_ARREGLOS(entrada) = 1;
     } = 1;
 } = 0x20000001;
