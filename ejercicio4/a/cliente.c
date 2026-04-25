@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <string.h>
 #include "message.h"
+#include <time.h>
 
 struct message msg;
 
@@ -72,13 +73,23 @@ void ShowServerResult()
     }
 }
 
+static double timespec_diff_sec(const struct timespec *start, const struct timespec *end) {
+    return (double)(end->tv_sec - start->tv_sec) * 1e9 +
+           (double)(end->tv_nsec - start->tv_nsec);
+}
+
+
 int main() {
     int msqid = msgget((key_t)1234, 0666);
     if (msqid == -1) {
         printf("No se pudo conectar a la cola de mensajes\n");
         exit(1);
     }
-
+    struct timespec t_start, t_ready;
+	if (clock_gettime(CLOCK_MONOTONIC, &t_start) == -1) {
+		perror("clock_gettime");
+		return 1;
+	}
     sumOperation();
     //multiplicationOperation();
     //serverName();
@@ -98,6 +109,12 @@ int main() {
     }
 
     ShowServerResult();
+    if (clock_gettime(CLOCK_MONOTONIC, &t_ready) == -1) {
+		perror("clock_gettime");
+		return 1;
+	}
+    double elapsed_time = timespec_diff_sec(&t_start, &t_ready);
+    printf("Tiempo transcurrido: %.0f nanosegundos\n", elapsed_time);
     fflush(stdout);
 
     return 0;
