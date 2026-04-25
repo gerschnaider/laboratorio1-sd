@@ -7,7 +7,7 @@ typedef struct {
 
 typedef struct {
     int numberToConvert;
-    int result;
+    char result[33];
 } DecimalToBinary;
 
 

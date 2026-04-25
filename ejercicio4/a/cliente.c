@@ -60,7 +60,7 @@ void ShowServerResult()
             printf("%s\n", msg.data.text);
             break;
         case 8:
-            printf("Número convertido a binario: %d\n", msg.data.decimalToBinary.result);
+            printf("Número convertido a binario: %s\n", msg.data.decimalToBinary.result);
             break;
         case 9:
             printf("Resultado de la suma: %d\n", msg.data.arithmetic.result);
@@ -90,11 +90,11 @@ int main() {
 		perror("clock_gettime");
 		return 1;
 	}
-    sumOperation();
+    //sumOperation();
     //multiplicationOperation();
     //serverName();
     //serverDate();
-    //decimalToBinary();
+    decimalToBinary();
 
     //Envia mensaje pidiendo servicio a servidor.
     if (msgsnd(msqid, &msg, MESSAGE_LENGHT, 0) == -1) {

@@ -44,10 +44,9 @@ void decimalToBinary()
     }
     if (pos == 0) binary[pos++] = '0'; // Caso para el número 0
     binary[pos] = '\0';
-    printf("Número %d convertido a binario: %s\n", num, binary);
 
-    msg.data.decimalToBinary.result = (int)strtol(binary, NULL, 10);
-    printf("Resultado en server (decimal): %d\n", msg.data.decimalToBinary.result);
+    strncpy(msg.data.decimalToBinary.result, binary, sizeof(msg.data.decimalToBinary.result));
+
 }
 
 void sum()
