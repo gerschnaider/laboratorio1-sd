@@ -7,6 +7,8 @@
 #include <netinet/in.h> /* Para struct sockaddr_in, INADDR_ANY, htons(), ntohs() */
 #include <arpa/inet.h>  /* Para inet_ntoa() */
 #include <sys/wait.h>   /* Para waitpid() y la macro WNOHANG */
+#include <string.h>     /* Para strcpy() */
+
 
 #define myport 14550 /*nro de puerto donde se conectaran los clientes*/
 #define backlog 10 /* tamaño de la cola de conexiones recibidas, si se pasan los rechaza */
@@ -63,12 +65,24 @@ int main()
             close(sockfd); /* El hijo no necesita el socket que escucha peticiones nuevas */
 
 
+            /* Recibimos la solicitud del cliente */
+            char buffer[4097]; //buffer para recibir datos del cliente
+            int numbytes;
+            if ((numbytes = recv(newfd, buffer, 4096, 0)) == -1) 
+            {
+                perror("recv");
+                exit(1);
+            }
+            buffer[numbytes] = '\0'; // Aseguramos que el buffer es un string null-terminated
+            // printf("Recibido del cliente: %s\n", buffer);
+
+            
             /* Enviamos los datos mediante el nuevo socket conectado */
-            if (send(newfd, "hello, world!\n", 14, 0) == -1)
+            if (send(newfd, "Request received\n", 17, 0) == -1)
                 perror("send");
             
             close(newfd);   /* Cerramos la conexión con el cliente */
-            exit(0);
+            exit(0);    
         }
 
         close(newfd); /* El padre cierra su copia del socket conectado */
