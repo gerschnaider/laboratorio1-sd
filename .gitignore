@@ -1,0 +1,29 @@
+# Archivos de objeto y bibliotecas
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.dylib
+
+# Archivos ejecutables
+*.exe
+*.out
+*.app
+
+# Archivos temporales y de editor
+*.swp
+*~
+.DS_Store
+*.tmp
+*.log
+
+# Carpetas de construcción (build)
+build/
+bin/
+obj/
+
+# Archivos de configuración de IDEs (opcional)
+.vscode/
+.idea/
