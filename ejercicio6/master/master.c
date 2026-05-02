@@ -10,11 +10,42 @@
 struct timespec net_buffer;
 struct timespec roud_trip_time;
 
+typedef struct {
+    struct in_addr ip;      // Guarda la IP en formato binario de red
+    int64_t offset_ns;      // La diferencia de tiempo que nos mandó
+    bool ocupado;           // Flag para saber si esta ranura está en uso
+} SlaveInfo;
+
+// Función para guardar o actualizar el dato en la tabla
+void guardar_offset(SlaveInfo tabla[], struct in_addr ip_nueva, int64_t offset_nuevo) {
+    int ranura_libre = -1;
+
+    for (int i = 0; i < MAX_SLAVES; i++) {
+        if (!tabla[i].ocupado) {
+            if (ranura_libre == -1) {
+                ranura_libre = i;
+            }
+        }
+    }
+
+    // Si llegamos acá, significa que es un esclavo nuevo y no estaba en la tabla
+    if (ranura_libre != -1) {
+        tabla[ranura_libre].ip = ip_nueva;
+        tabla[ranura_libre].offset_ns = offset_nuevo;
+        tabla[ranura_libre].ocupado = true;
+    } else {
+        printf("Error: La tabla está llena. No caben más esclavos.\n");
+    }
+}
+
 int64_t static timespec_to_ns(struct timespec *ts) {
     return (int64_t)ts->tv_sec * 1000000000LL + ts->tv_nsec;
 }
 
 int main(int argc, char *argv[]) {
+    SlaveInfo tabla_esclavos[MAX_SLAVES];
+    memset(tabla_esclavos, 0, sizeof(tabla_esclavos));
+    
     int sockfd;
     struct sockaddr_in servaddr, cliaddr;
     int64_t current_time_ns;
@@ -72,11 +103,16 @@ int main(int argc, char *argv[]) {
 
 
     for (int i = 0; i < argc - 1; i++) {
-        if (recvfrom(sockfd, &recieved_diff_tiem_ns[i], sizeof(int64_t), 0, (struct sockaddr *)&cliaddr, &len) < 0) {
+        if (recvfrom(sockfd, &recieved_diff_time_ns[i], sizeof(int64_t), 0, (struct sockaddr *)&cliaddr, &len) < 0) {
             perror("Fallo en el recvfrom");
             exit(EXIT_FAILURE);
         }
-        printf("Diferencia de tiempo recibida del slave %d: %lld nanosegundos\n", i + 1, recieved_diff_tiem_ns[i]);
+
+        recieved_diff_time_ns[i] = (int64_t)be64toh(recieved_diff_time_ns[i]));
+
+        printf("Diferencia de tiempo recibida del slave %s: %ld nanosegundos\n", inet_ntoa(cliaddr.sin_addr), recieved_diff_time_ns[i]);
+
+        guardar_offset(tabla_esclavos, cliaddr.sin_addr, recieved_diff_time_ns[i]);
     }
 
     return 0;
