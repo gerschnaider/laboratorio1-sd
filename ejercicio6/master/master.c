@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     current_time_ns = timespec_to_ns(&current_time);
 
     cliaddr.sin_family = AF_INET; // IPv4
-    cliaddr.sin_port = htons(PORT); // Puerto convertido a orden de red
+    cliaddr.sin_port = htons(5102); // Puerto convertido a orden de red
     if(argc < 2) {
         perror("Faltan argumentos: se requiere la dirección IP del cliente");
         exit(EXIT_FAILURE);
