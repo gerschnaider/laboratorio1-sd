@@ -6,6 +6,7 @@
 #include <time.h>
 
 #define PORT 5101
+#define MAX_SLAVES 10
 struct timespec net_buffer;
 struct timespec roud_trip_time;
 
@@ -16,7 +17,8 @@ int64_t static timespec_to_ns(struct timespec *ts) {
 int main(int argc, char *argv[]) {
     int sockfd;
     struct sockaddr_in servaddr, cliaddr;
-    int64_t current_time_ns, recieved_diff_tiem_ns;
+    int64_t current_time_ns;
+    int64_t recieved_diff_tiem_ns[MAX_SLAVES];
     socklen_t len;
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -44,8 +46,6 @@ int main(int argc, char *argv[]) {
     len = sizeof(cliaddr);
 
     struct timespec current_time;
-    clock_gettime(CLOCK_REALTIME, &current_time);
-    current_time_ns = timespec_to_ns(&current_time);
 
     cliaddr.sin_family = AF_INET; // IPv4
     cliaddr.sin_port = htons(5102); // Puerto convertido a orden de red
@@ -54,29 +54,30 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    if (inet_pton(AF_INET, argv[1], &cliaddr.sin_addr) <= 0) {
-        perror("Dirección IP inválida o no soportada");
-        exit(EXIT_FAILURE);
-    }
-
-   
-    if(sendto(sockfd, &current_time_ns, sizeof(int64_t), 0, (const struct sockaddr *)&cliaddr, len) < 0)
-    {
-        perror("Fallo en el sendto");
-        exit(EXIT_FAILURE);
+    for (int i = 0; i < argc - 1; i++) {
+        if (inet_pton(AF_INET, argv[i + 1], &cliaddr.sin_addr) <= 0) {
+            perror("Dirección IP inválida o no soportada");
+            exit(EXIT_FAILURE);
+        }
+        clock_gettime(CLOCK_REALTIME, &current_time);
+        current_time_ns = timespec_to_ns(&current_time);
+        if(sendto(sockfd, &current_time_ns, sizeof(int64_t), 0, (const struct sockaddr *)&cliaddr, len) < 0)
+        {
+            perror("Fallo en el sendto");
+            exit(EXIT_FAILURE);
+        }
     }
     
     printf("Tiempo local enviado enviada. \n ");
 
 
-    if(recvfrom(sockfd, &recieved_diff_tiem_ns, sizeof(int64_t), 0, (struct sockaddr *)&cliaddr, &len) < 0)
-    {
-        perror("Fallo en el recvfrom");
-        exit(EXIT_FAILURE);
+    for (int i = 0; i < argc - 1; i++) {
+        if (recvfrom(sockfd, &recieved_diff_tiem_ns[i], sizeof(int64_t), 0, (struct sockaddr *)&cliaddr, &len) < 0) {
+            perror("Fallo en el recvfrom");
+            exit(EXIT_FAILURE);
+        }
+        printf("Diferencia de tiempo recibida del slave %d: %lld nanosegundos\n", i + 1, recieved_diff_tiem_ns[i]);
     }
-
-    
-    printf("Diferencia de tiempo con servidor de tiempo: %lld.%09lld\n", recieved_diff_tiem_ns / 1000000000LL, recieved_diff_tiem_ns % 1000000000LL);
 
     return 0;
 }
