@@ -25,13 +25,13 @@ int main()
 	
 	if(pid == 0)
 	{
-		execv("./cliente", NULL);
+		execv("./ejecutable_cliente.out", NULL);
 		exit(1);
 	}else{
 		pid = fork();
 		if(pid == 0)
 		{
-			execv("./servidor", NULL);
+			execv("./ejecutable_servidor.out", NULL);
 			exit(1);
 		}
 	}
