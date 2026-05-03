@@ -15,30 +15,6 @@ static double timespec_diff_sec(const struct timespec *start, const struct times
 	return (double)(end->tv_sec - start->tv_sec) + (double)(end->tv_nsec - start->tv_nsec) / 1e9;
 }
 
-// void sumador_prog_1(char *host)
-// {
-// 	CLIENT *clnt;
-// 	respuesta_datos  *result_1;
-// 	entrada_datos  sumar_arreglos_1_arg;
-
-// #ifndef	DEBUG
-// 	clnt = clnt_create (host, SUMADOR_PROG, SUMADOR_VERS, "udp");
-// 	if (clnt == NULL) {
-// 		clnt_pcreateerror (host);
-// 		exit (1);
-// 	}
-// #endif	/* DEBUG */
-
-// 	result_1 = sumar_arreglos_1(&sumar_arreglos_1_arg, clnt);
-// 	if (result_1 == (respuesta_datos *) NULL) {
-// 		clnt_perror (clnt, "call failed");
-// 	}
-// #ifndef	DEBUG
-// 	clnt_destroy (clnt);
-// #endif	 /* DEBUG */
-// }
-
-
 int main (int argc, char *argv[])
 {
 	printf("Iniciando cliente RPC...\n");

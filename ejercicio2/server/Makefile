@@ -1,9 +1,9 @@
 # Regla principal que ejecuta todo
-all: serverEjecutable
+all: serverEjecutable.out
 
 # 1. Armamos el ejecutable final juntando los .o
-serverEjecutable: proto_server.o proto_svc.o proto_xdr.o
-	gcc -o serverEjecutable proto_server.o proto_svc.o proto_xdr.o -ltirpc -I/usr/include/tirpc
+serverEjecutable.out: proto_server.o proto_svc.o proto_xdr.o
+	gcc -o serverEjecutable.out proto_server.o proto_svc.o proto_xdr.o -ltirpc -I/usr/include/tirpc
 
 # 2. Compilamos el código principal de tu servidor
 proto_server.o: proto_server.c
@@ -19,4 +19,4 @@ proto_xdr.o: proto_xdr.c
 
 # 5. Regla opcional para limpiar la carpeta
 clean:
-	rm -f *.o serverEjecutable
+	rm -f *.o serverEjecutable.out
