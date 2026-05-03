@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+import "google/type/date.proto";
+import "google/protobuf/empty.proto";
+
+message server_name_return {
+    string name = 1;
+}
+
+message server_date_return {
+    google.type.Date date = 1;
+}
+
+message binary_number{
+    string bynary_number = 1;
+}
+
+message integer_to_convert{
+    int32 integer = 1;
+}
+
+message arithmetic_parameters{
+    repeated int32 operands = 1;
+    int32 operands_amount = 2;
+}
+
+message arithmetic_response{
+    int32 response = 1;
+}
+
+service mini_servicios {
+    rpc GetServerName(google.protobuf.Empty) returns (server_name_return){}
+    
+    rpc GetServerDate(google.protobuf.Empty) returns (server_date_return){}
+
+    rpc IntegerToBinary(integer_to_convert) returns (binary_number){}
+
+    rpc Addition(arithmetic_parameters) returns (arithmetic_response){}
+
+    rpc Multiplication(arithmetic_parameters) returns (arithmetic_response){}
+
+}
