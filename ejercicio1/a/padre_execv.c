@@ -1,12 +1,4 @@
 
-/*
- * padre.c
- *
- * Mide el tiempo que tarda en crear un hijo y cargarle una imagen ejecutable.
- * Uso: ./padre [ruta_ejecutable] [args...]
- * Si no se especifica, usa ./hijo_exec en el mismo directorio.
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -17,8 +9,8 @@
 
 #define READY_FD 3
 
-static double timespec_diff_sec(const struct timespec *start, const struct timespec *end) {
-	return (double)(end->tv_sec - start->tv_sec) + (double)(end->tv_nsec - start->tv_nsec) / 1e9;
+static int64_t timespec_diff_nanosec(const struct timespec *start, const struct timespec *end) {
+	return (int64_t)(end->tv_sec - start->tv_sec) * 1000000000LL + (int64_t)(end->tv_nsec - start->tv_nsec);
 }
 
 int main(int argc, char *argv[]) {
@@ -54,8 +46,8 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        double elapsed = timespec_diff_sec(&t_start, &t_ready);
-        printf("Tiempo desde fork() hasta que el hijo terminó: %.6f segundos\n", elapsed);
+        int64_t elapsed = timespec_diff_nanosec(&t_start, &t_ready);
+        printf("Tiempo desde fork() hasta que el hijo terminó: %ld microsegundos\n", elapsed / 1000);
 	}
 	return 0;
 }

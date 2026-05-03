@@ -6,36 +6,9 @@
 
 #include "proto.h"
 #include <time.h>
-static double timespec_diff_sec(const struct timespec *start, const struct timespec *end) {
-	return (double)(end->tv_sec - start->tv_sec) + (double)(end->tv_nsec - start->tv_nsec) / 1e9;
+static int64_t timespec_diff_nanosec(const struct timespec *start, const struct timespec *end) {
+	return (int64_t)(end->tv_sec - start->tv_sec) * 1000000000LL + (int64_t)(end->tv_nsec - start->tv_nsec);
 }
-// void
-// ejercicio1_1(char *host)
-// {
-// 	CLIENT *clnt;
-// 	int  *result_1;
-// 	char *crear_hijo1b_1_arg;
-	
-// #ifndef	DEBUG
-// 	clnt = clnt_create (host, EJERCICIO1, EJERCICIO1VERS, "udp");
-// 	if (clnt == NULL) {
-// 		clnt_pcreateerror (host);
-// 		exit (1);
-// 	}
-// #endif	/* DEBUG */
-
-// 	result_1 = crear_hijo1b_1((void*)&crear_hijo1b_1_arg, clnt);
-// 	if (result_1 == (int *) NULL) {
-// 		clnt_perror (clnt, "call failed");
-// 	}
-// 	result_2 = funcionprueba_1((void*)&funcionprueba_1_arg, clnt);
-// 	if (result_2 == (int *) NULL) {
-// 		clnt_perror (clnt, "call failed");
-// 	}
-// #ifndef	DEBUG
-// 	clnt_destroy (clnt);
-// #endif	 /* DEBUG */
-// }
 
 
 int
@@ -81,8 +54,8 @@ main (int argc, char *argv[])
 			return 1;
 		}	
 
-		double elapsed = timespec_diff_sec(&t_start, &t_ready);
-        printf("Tiempo hasta que el hijo terminó: %.6f segundos\n", elapsed);
+		int64_t elapsed = timespec_diff_nanosec(&t_start, &t_ready);
+        printf("Tiempo hasta que el hijo terminó: %ld microsegundos\n", elapsed / 1000);
 	}else{
 		//Si el resultado no es 0, hubo un error al crear el hijo. Mostramos un mensaje de error.
 		fprintf(stderr, "Error al crear el hijo: código %d\n", *result_1);

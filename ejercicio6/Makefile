@@ -1,7 +1,7 @@
-all: ejecutable_master ejecutable_slave
+all: ejecutable_master.out ejecutable_slave.out
 
-ejecutable_slave: slave/main_slave.c
-	gcc slave/main_slave.c -o slave/ejecutable_slave
+ejecutable_slave.out: slave/main_slave.c
+	gcc slave/main_slave.c -o slave/ejecutable_slave.out
 
-ejecutable_master: master/master.c
-	gcc master/master.c -o master/ejecutable_master
+ejecutable_master.out: master/master.c
+	gcc master/master.c -o master/ejecutable_master.out

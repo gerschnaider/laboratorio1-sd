@@ -1,13 +1,3 @@
-/*
- * hijo_exec.c
- *
- * Programa de ejemplo que se utiliza como imagen ejecutable cargada por el hijo.
- * Al arrancar escribe un byte 'R' en el descriptor READY_FD (3) para indicar
- * que la imagen ya está cargada y ejecutándose.
- *
- * Compilar: gcc -o hijo_exec hijo_exec.c
- */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
