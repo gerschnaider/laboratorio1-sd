@@ -4,11 +4,14 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <time.h>
+#include <stdbool.h>
 
-#define PORT 5101
+#define CLIENT_PORT 5101
+#define BUFFER_SIZE 1024
+#define SERVER_PORT 5102
 #define MAX_SLAVES 10
-struct timespec net_buffer;
-struct timespec roud_trip_time;
+
+
 
 typedef struct {
     struct in_addr ip;      // Guarda la IP en formato binario de red
@@ -38,16 +41,26 @@ void guardar_offset(SlaveInfo tabla[], struct in_addr ip_nueva, int64_t offset_n
     }
 }
 
-int64_t static timespec_to_ns(struct timespec *ts) {
+static int64_t timespec_to_ns(struct timespec *ts) {
     return (int64_t)ts->tv_sec * 1000000000LL + ts->tv_nsec;
 }
+
+static struct timespec ns_to_timespec(int64_t ns) {
+    struct timespec ts;
+    ts.tv_sec = ns / 1000000000LL;
+    ts.tv_nsec = ns % 1000000000LL;
+    return ts;
+}
+
 
 int main(int argc, char *argv[]) {
     SlaveInfo tabla_esclavos[MAX_SLAVES];
     memset(tabla_esclavos, 0, sizeof(tabla_esclavos));
+    int64_t net_buffer;
+
     
     int sockfd;
-    struct sockaddr_in servaddr, cliaddr;
+    struct sockaddr_in clientaddr, serveraddr;
     int64_t current_time_ns;
     int64_t recieved_diff_tiem_ns[MAX_SLAVES];
     socklen_t len;
@@ -57,62 +70,64 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    memset(&servaddr, 0, sizeof(servaddr));
-    memset(&cliaddr, 0, sizeof(cliaddr));
-
-    // 2. Configurar la dirección del servidor
-    servaddr.sin_family = AF_INET; // IPv4
-    servaddr.sin_addr.s_addr = INADDR_ANY; // Escuchar en cualquier interfaz
-    servaddr.sin_port = htons(PORT); // Puerto convertido a orden de red
-
-    // 3. Vincular el socket al puerto (Bind)
-    if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-        perror("Fallo en el bind");
-        exit(EXIT_FAILURE);
-    }
-
-    printf("Servidor UDP en el puerto %d...\n", PORT);
-
-
-    len = sizeof(cliaddr);
-
-    struct timespec current_time;
-
-    cliaddr.sin_family = AF_INET; // IPv4
-    cliaddr.sin_port = htons(5102); // Puerto convertido a orden de red
     if(argc < 2) {
         perror("Faltan argumentos: se requiere la dirección IP del cliente");
         exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < argc - 1; i++) {
-        if (inet_pton(AF_INET, argv[i + 1], &cliaddr.sin_addr) <= 0) {
+    memset(&clientaddr, 0, sizeof(clientaddr));
+    memset(&serveraddr, 0, sizeof(serveraddr));
+
+    // 2. Configurar la dirección del servidor
+    clientaddr.sin_family = AF_INET; // IPv4
+    clientaddr.sin_addr.s_addr = INADDR_ANY; //interfaz
+    clientaddr.sin_port = htons(CLIENT_PORT); // Puerto convertido a orden de red
+
+    // 3. Vincular el socket al puerto (Bind)
+    if (bind(sockfd, (const struct sockaddr *)&clientaddr, sizeof(clientaddr)) < 0) {
+        perror("Fallo en el bind");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Servidor en el puerto %d...\n", CLIENT_PORT);
+    
+    struct timespec start_time, end_time;
+
+    
+    
+    // Configurar la dirección del servidor al que se enviarán los mensajes (los slaves)
+    len = sizeof(serveraddr);
+    serveraddr.sin_family = AF_INET; // IPv4
+    serveraddr.sin_port = htons(5102); // Puerto convertido a orden de red
+    for (int i = 0; i < argc - 1; i++) { // Para cada dirección IP de servidor proporcionada en los argumentos
+        
+        // Pide la hora al servidor
+        if (inet_pton(AF_INET, argv[i + 1], &serveraddr.sin_addr) <= 0) {
             perror("Dirección IP inválida o no soportada");
             exit(EXIT_FAILURE);
         }
-        clock_gettime(CLOCK_REALTIME, &current_time);
-        current_time_ns = timespec_to_ns(&current_time);
-        if(sendto(sockfd, &current_time_ns, sizeof(int64_t), 0, (const struct sockaddr *)&cliaddr, len) < 0)
+        clock_gettime(CLOCK_REALTIME, &start_time);
+        if(sendto(sockfd, "REQUEST_HOUR", 13, 0, (const struct sockaddr *)&serveraddr, len) < 0)
         {
             perror("Fallo en el sendto");
             exit(EXIT_FAILURE);
         }
-    }
-    
-    printf("Tiempo local enviado enviada. \n ");
 
-
-    for (int i = 0; i < argc - 1; i++) {
-        if (recvfrom(sockfd, &recieved_diff_time_ns[i], sizeof(int64_t), 0, (struct sockaddr *)&cliaddr, &len) < 0) {
+        // Recibe la hora del servidor y calcula el tiempo de ida y vuelta
+        if (recvfrom(sockfd, &net_buffer, sizeof(net_buffer), 0, (struct sockaddr *)&serveraddr, &len) < 0) {
             perror("Fallo en el recvfrom");
             exit(EXIT_FAILURE);
         }
+        net_buffer = (int64_t)be64toh(net_buffer);
 
-        recieved_diff_time_ns[i] = (int64_t)be64toh(recieved_diff_time_ns[i]));
+        if (clock_gettime(CLOCK_REALTIME, &end_time) < 0) {
+            perror("Fallo en el clock_gettime");
+            exit(EXIT_FAILURE);
+        }
+        int64_t rtt = timespec_to_ns(&end_time) - timespec_to_ns(&start_time);
 
-        printf("Diferencia de tiempo recibida del slave %s: %ld nanosegundos\n", inet_ntoa(cliaddr.sin_addr), recieved_diff_time_ns[i]);
-
-        guardar_offset(tabla_esclavos, cliaddr.sin_addr, recieved_diff_time_ns[i]);
+        guardar_offset(tabla_esclavos, serveraddr.sin_addr, timespec_to_ns(&start_time) - net_buffer - rtt / 2);
+        printf("Diferencia de tiempo calculada para el slave %s: %ld nanosegundos\n", inet_ntoa(serveraddr.sin_addr), timespec_to_ns(&start_time) - net_buffer - rtt / 2);
     }
 
     return 0;
