@@ -1,9 +1,9 @@
 # Regla principal que ejecuta todo
-all: clienteEjecutable
+all: clienteEjecutable.out
 
 # 1. Armamos el ejecutable final juntando los .o
-clienteEjecutable: proto_client.o proto_clnt.o proto_xdr.o
-	gcc -o clienteEjecutable proto_client.o proto_clnt.o proto_xdr.o -ltirpc -I/usr/include/tirpc
+clienteEjecutable.out: proto_client.o proto_clnt.o proto_xdr.o
+	gcc -o clienteEjecutable.out proto_client.o proto_clnt.o proto_xdr.o -ltirpc -I/usr/include/tirpc
 
 # 2. Compilamos el código principal de tu cliente
 proto_client.o: proto_client.c
@@ -19,4 +19,4 @@ proto_xdr.o: proto_xdr.c
 
 # 5. Regla opcional para limpiar la carpeta
 clean:
-	rm -f *.o clienteEjecutable
+	rm -f *.o clienteEjecutable.out
