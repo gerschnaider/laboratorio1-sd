@@ -12,7 +12,7 @@ crear_hijo1b_1_svc(void *argp, struct svc_req *rqstp)
 {
 	static int  result = 0;
 
-	int status = system("./hijo_exec");
+	int status = system("./hijo_exec.out");
 	if (status == -1) {
 		perror("system falló");
 		result = 1;

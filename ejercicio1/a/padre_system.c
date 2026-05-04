@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	int status = system("./hijo_exec");
+	int status = system("./hijo_exec.out");
 	if (status == -1) {
 		perror("system falló");
 		return 1;
