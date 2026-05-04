@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 	} else if (pid == 0) {
 		// child
 		
-        char exec_path[] = "./hijo_exec";
+        char exec_path[] = "./hijo_exec.out";
 		execv(exec_path, NULL);
     
         //falla el execv
